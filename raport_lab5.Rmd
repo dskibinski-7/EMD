@@ -1,0 +1,84 @@
+---
+title: "Raport Lab5"
+author: "Dawid Skibiński"
+date: "11/11/2021"
+output: html_document
+---
+## Wczytanie danych
+```{r WczytanieDanych, cache=TRUE, results='hide'}
+library(EDAWR)
+library(dplyr)
+```
+
+## Podsumowanie danych
+```{r PodsumowanieDanych}
+head(tb)
+knitr::kable(summary(tb))
+```
+
+## Liczba zachorowań z podziałem na płeć
+```{r}
+by_sex = group_by(tb, sex)
+by_sex_summary <- summarize(by_sex, sum(c(child, adult, elderly), na.rm=TRUE))
+by_sex_summary
+
+y <- unlist(by_sex_summary[2], use.names = FALSE)
+sex_names <- unlist(by_sex_summary[1], use.names = FALSE)
+
+barplot(y, names.arg = sex_names, ylab="Liczba zachorowań", xlab="Płeć")
+
+```
+
+## Sumaryczna liczba zachorowań z podziałem na wiek
+```{r}
+by_year = group_by(tb, year)
+
+child_sum<-summarize(by_year, sum(child, na.rm=TRUE))
+adult_sum<-summarize(by_year, sum(adult, na.rm=TRUE))
+elderly_sum<-summarize(by_year, sum(elderly, na.rm=TRUE))
+
+x <- unlist(elderly_sum[1], use.names = FALSE)
+y_elderly <- unlist(elderly_sum[2], use.names = FALSE)
+y_adult <- unlist(adult_sum[2], use.names = FALSE)
+y_child <- unlist(child_sum[2], use.names = FALSE)
+plot(x, y_adult, type='l', col="green", ylab="Liczba zachorowań", xlab="Lata", ylim=range(c(y_adult, y_child,y_elderly)))
+lines(x, y_child, col="red")
+lines(x, y_elderly, col="blue")
+
+legend(x="topleft", fill=c("green", "red", "blue"), legend=c("Dorośli", "Dzieci", "Starsi"))
+
+```
+
+## Sumaryczna liczba zachorowań z podziałem na wiek i kraje
+```{r}
+
+countries <- unlist(tb["country"], use.names = FALSE)
+countries <- countries[!duplicated(countries)]
+
+
+for (cntr in countries) {
+  country_tb <- filter(tb, country == cntr)
+
+
+  by_year = group_by(country_tb, year)
+
+  child_sum<-summarize(by_year, sum(child, na.rm=TRUE))
+  adult_sum<-summarize(by_year, sum(adult, na.rm=TRUE))
+  elderly_sum<-summarize(by_year, sum(elderly, na.rm=TRUE))
+
+  x <- unlist(elderly_sum[1], use.names = FALSE)
+  y_elderly <- unlist(elderly_sum[2], use.names = FALSE)
+  y_adult <- unlist(adult_sum[2], use.names = FALSE)
+  y_child <- unlist(child_sum[2], use.names = FALSE)
+  plot(x, y_adult, type='l', col="green", ylab="Liczba zachorowań", xlab="Lata", ylim=range(c(y_adult, y_child,y_elderly)))
+  lines(x, y_child, col="red")
+  lines(x, y_elderly, col="blue")
+  title(cntr)
+
+  legend(x="topleft", fill=c("green", "red", "blue"), legend=c("Dorośli", "Dzieci", "Starsi"))
+}
+
+```
+
+
+
